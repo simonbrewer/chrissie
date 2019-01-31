@@ -10,7 +10,7 @@ source("helpers.R")
 dem.r = raster("~/Documents/grassdata/hydrosheds/bclake/af_dem_30g.nc")
 ldd.r = raster("~/Documents/grassdata/hydrosheds/bclake/af_ldd_30g.nc")
 
-bc.r = raster("./dem/bclake_dem.nc")
+bc.r = raster("./dem/chrissie_dem.nc")
 myext = extent(bc.r)
 # myext = extent(c(19.9,20.3,-30.95,-30.6))
 # myext = extent(c(17.5,18.5,-31.5,-31))
@@ -20,13 +20,13 @@ dem.r = crop(dem.r, myext)
 ldd.r = crop(ldd.r, myext)
 ###############################################################################
 ## Lake border
-bclake = readOGR("~/Documents/grassdata/hydrosheds/bclake/929m lake level.kml")
+cllake = readOGR("./chrissie_lake/chrissie_lake.shp")
 
 plot(dem.r)
-plot(bclake, add=TRUE)
+plot(cllake, add=TRUE)
 
-#dem.r = crop(dem.r, bclake)
-#ldd.r = crop(ldd.r, bclake)
+#dem.r = crop(dem.r, cllake)
+#ldd.r = crop(ldd.r, cllake)
 ## r.watershed directions
 ## "Provides the "aspect" for each cell measured CCW from East. 
 ## Multiplying positive values by 45 will give the direction in degrees 
@@ -61,31 +61,31 @@ pwa.out = fpwa(gridx, gridy, dem, ldd, mask)
 pwa.r = setValues(dem.r, matrix(pwa.out$pwa, 
                                   nrow=dim(dem.r)[1], ncol=dim(dem.r)[2]))
 plot(pwa.r)
-plot(bclake, add=TRUE)
-writeRaster(pwa.r, "./dem/bclake_pwa.nc", format="netCDF", overwrite=TRUE)
+plot(cllake, add=TRUE)
+writeRaster(pwa.r, "./dem/cllake_pwa.nc", format="netCDF", overwrite=TRUE)
 
 drain.r = setValues(dem.r, matrix(pwa.out$drain, 
                                 nrow=dim(dem.r)[1], ncol=dim(dem.r)[2]))
 plot(drain.r)
-plot(bclake, add=TRUE)
-writeRaster(drain.r, "./dem/bclake_drain.nc", format="netCDF", overwrite=TRUE)
+plot(cllake, add=TRUE)
+writeRaster(drain.r, "./dem/cllake_drain.nc", format="netCDF", overwrite=TRUE)
 
 outelev.r = setValues(dem.r, matrix(pwa.out$outelev, 
                                   nrow=dim(dem.r)[1], ncol=dim(dem.r)[2]))
 plot(outelev.r-dem.r)
-plot(bclake, add=TRUE)
+plot(cllake, add=TRUE)
 mflac.r = outelev.r*pwa.r
-writeRaster(mflac.r, "./dem/bclake_mflac.nc", format="netCDF", overwrite=TRUE)
+writeRaster(mflac.r, "./dem/cllake_mflac.nc", format="netCDF", overwrite=TRUE)
 
 iout.r = setValues(dem.r, matrix(pwa.out$iout, 
                                  nrow=dim(dem.r)[1], ncol=dim(dem.r)[2]))
 plot(iout.r)
-plot(bclake, add=TRUE)
-writeRaster(iout.r, "./dem/bclake_iout.nc", format="netCDF", overwrite=TRUE)
+plot(cllake, add=TRUE)
+writeRaster(iout.r, "./dem/cllake_iout.nc", format="netCDF", overwrite=TRUE)
 
 jout.r = setValues(dem.r, matrix(pwa.out$jout, 
                                  nrow=dim(dem.r)[1], ncol=dim(dem.r)[2]))
 plot(jout.r)
-plot(bclake, add=TRUE)
-writeRaster(jout.r, "./dem/bclake_jout.nc", format="netCDF", overwrite=TRUE)
+plot(cllake, add=TRUE)
+writeRaster(jout.r, "./dem/cllake_jout.nc", format="netCDF", overwrite=TRUE)
 
