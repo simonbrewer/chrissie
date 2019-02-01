@@ -391,7 +391,7 @@ c
           tempdl(ii,jj) = tempdl(ii,jj) 
      *          + ((prcpl-evapl)*larea(i,j))*delt
          if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
-                 write(*,*) i,j,k,kt,tempdl(ii,jj),larea(i,j)
+                 write(*,*) "a",i,j,k,kt,tempdl(ii,jj),larea(i,j)
          end if
          endif
 c
@@ -405,7 +405,7 @@ c
 c
  110    continue
  120   continue
-
+      
 c----------------------------------------------------------------
 c Calculate the change in volume (dvoll) as the sum of the P-E (tempdl)
 c and the river flow (tempdr). Set the minimum value of dvoll.
@@ -618,6 +618,7 @@ c automata. Distribute water height within a lake basin only
 c This flattens the lake surface so that there are no hills or
 c valleys due to differences in the local water budget.
 c
+         write(*,*) "Here 1"
         if((laket .eq. 0) .and. ((ii .ne. 0).and. (jj.ne.0)))then
 c
          if((outelv(i,j) .gt. dem(i,j)) .and.

@@ -18,12 +18,7 @@ source("helpers.R")
 
 ###############################################################################
 ## Lake border
-bclake = readOGR("~/Documents/grassdata/hydrosheds/bclake/929m lake level.kml")
-
-## Lake center 
-lon = 20.0833
-lat = -30.75
-bccent = SpatialPoints(cbind(lon,lat))
+cllake = readOGR("./chrissie_lake/chrissie_lake.shp")
 
 ###############################################################################
 ## MODEL SETUP
@@ -34,24 +29,28 @@ bpf = 0 ## Proportion of runoff to put in baseflow [0-1]
 effvol = 0.3 
 
 ## Base files
-dem.r = raster("./dem/bclake_dem.nc")
-bas.r = raster("./dem/bclake_bas.nc")
+dem.r = raster("./dem/chrissie_dem.nc")
+bas.r = raster("./dem/chrissie_bas.nc")
 ldd.r = raster("~/Documents/grassdata/hydrosheds/bclake/af_ldd_30g.nc")
 ldd.r = crop(ldd.r, extent(dem.r))
-mflac.r = raster("./dem/bclake_mflac.nc")
-iout.r = raster("./dem/bclake_iout.nc")
-jout.r = raster("./dem/bclake_jout.nc")
+mflac.r = raster("./dem/cllake_mflac.nc")
+iout.r = raster("./dem/cllake_iout.nc")
+jout.r = raster("./dem/cllake_jout.nc")
+
+## Replace nulls
+dem.r[is.na(dem.r)] <- 0
+bas.r[is.na(bas.r)] <- 0
+ldd.r[is.na(ldd.r)] <- 0
+mflac.r[is.na(mflac.r)] <- 0
+iout.r[is.na(iout.r)] <- 0
+jout.r[is.na(jout.r)] <- 0
 
 ## Clip lake basin
-mask.r = bas.r == 19238
+mask.r = bas.r == 18872 ## 18872 is the basin corresponding to Chrissie lake
 
 ###############################################################################
 ## Estimate cell areas
 area.r = area(dem.r) * 1e6
-
-## Distance between cells (set as constant)
-## Needs to be calculated in fortran from coordinates
-dist.r =  setValues(dem.r, 857) ## Approximately 857m cell centers
 
 ###############################################################################
 ## Grid sizes for outout
@@ -69,10 +68,14 @@ outlet.r[out.cell] <- 1
 
 ###############################################################################
 ## Forcing data
-dpre.stk = brick("./inputs/dpre_bc.nc") * 5
-dpet.stk = brick("./inputs/dpet_bc.nc")
-devp.stk = brick("./inputs/devp_bc.nc")
-dcn.stk = brick("./inputs/dcn_bc.nc")
+dpre.stk = brick("./inputs/dpre_cl.nc")
+dpre.stk[is.na(dpre.stk)] <- 0
+dpet.stk = brick("./inputs/dpet_cl.nc")
+dpet.stk[is.na(dpet.stk)] <- 0
+devp.stk = brick("./inputs/devp_cl.nc")
+devp.stk[is.na(devp.stk)] <- 0
+dcn.stk = brick("./inputs/dcn_cl.nc")
+dcn.stk[is.na(dcn.stk)] <- 0
 
 ###############################################################################
 ## Calculate runoff
@@ -112,7 +115,7 @@ cols <- colorRampPalette(brewer.pal(9,"Blues"))(100)
 
 nyrs = 1
 ndays = 365
-
+stop()
 sim.out = rhydra(gridx, gridy, nyrs, ndays, startyear=1, 
                  res=30, converg=1, laket=0, spin=1,
                  dem=dem, mask=mask, area=cella, rivdir=ldd, mflac=mflac,
@@ -122,16 +125,16 @@ sim.out = rhydra(gridx, gridy, nyrs, ndays, startyear=1,
 tmp.r = setValues(dem.r, matrix(sim.out$outelv, 
                                 nrow=dim(dem.r)[1], ncol=dim(dem.r)[2]))
 plot(tmp.r - dem.r)
-plot(bclake, add=TRUE)
+plot(cllake, add=TRUE)
 
 tmp.r = setValues(dem.r, matrix(sim.out$larea, 
                                 nrow=dim(dem.r)[1], ncol=dim(dem.r)[2]))
 plot(tmp.r)
-plot(bclake, add=TRUE)
+plot(cllake, add=TRUE)
 stop()
 tmp.r = setValues(dem.r, matrix(sim.out$volr, 
                                 nrow=dim(dem.r)[1], ncol=dim(dem.r)[2]))
 plot(tmp.r)
-plot(bclake, add=TRUE)
+plot(cllake, add=TRUE)
 
 
