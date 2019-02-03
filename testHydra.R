@@ -94,16 +94,16 @@ mflac = as.matrix(mflac.r)
 iout = as.matrix(iout.r)
 jout = as.matrix(jout.r)
 outelev = as.matrix(dem.r)  # Needs changing
-mask = as.matrix(mask.r)
+mask = as.matrix(mask.r)*1
 cella = as.matrix(area.r)
-celld = as.matrix(dist.r)
+# celld = as.matrix(dist.r)
 wvl = as.matrix(wvl.r)
 wse = as.matrix(wse.r)
 war = as.matrix(war.r)
 
 pre = as.array(dpre.stk)
 evp = as.array(devp.stk)
-ro = as.array(clamp(dpre.stk, lower=0, useValues=TRUE))
+ro = as.array(clamp(dro.stk, lower=0, useValues=TRUE))
 sro = ro * (1-bpf)
 bro = ro * bpf
 
@@ -115,7 +115,7 @@ cols <- colorRampPalette(brewer.pal(9,"Blues"))(100)
 
 nyrs = 1
 ndays = 365
-stop()
+
 sim.out = rhydra(gridx, gridy, nyrs, ndays, startyear=1, 
                  res=30, converg=1, laket=0, spin=1,
                  dem=dem, mask=mask, area=cella, rivdir=ldd, mflac=mflac,
