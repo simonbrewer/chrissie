@@ -75,7 +75,7 @@
         do while (edge.eq.0)
           !write(*,*) "current",ii,jj,dem(ii,jj),ldd(ii,jj)
           ! Test elevation
-          if (dem(ii,jj).gt.pourelev) then
+          if (dem(ii,jj).ge.pourelev) then
             pwa(i,j) = 1
             pourelev = dem(ii,jj)
             iout(i,j) = ii
