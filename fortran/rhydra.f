@@ -280,6 +280,40 @@ c
 916   continue
 c
 c
+c--------------------------------------------------------------
+c
+c Main loop in two parts 120 and 121 loops. 
+c First loop (120) calculates the change in volume with time.
+c Second loop (121) spreads volume in lake area
+c
+c     goto 441
+c
+      write(*,*)'to main loop'
+c
+c loop 130 is the total number of years that the model will be run.
+c 
+c This version is set for equilibrium runs so the number of years will
+c be simply spinup plus 1 with repeated climate
+c 
+c Recommended spin up is between 30 and several 100 years although
+c (To avoid long spin up, use the convergence function)
+c
+      do 130 iyear = 1,spin+1
+c
+c monthly loop
+c
+       k = 1 ! Doy counter
+       do 131 imon = 1,12
+c
+c
+ 131   continue   ! end imonth loop
+c
+       write(*,*)'year = ',iyear
+c
+ 130  continue    ! end iyear loop
+c
+
+c
 !-------------------------------------------------------------------------------
       end
 !-------------------------------------------------------------------------------
