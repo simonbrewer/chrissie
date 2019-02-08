@@ -42,6 +42,7 @@ gridx = dim(dem.r)[1]
 gridy = dim(dem.r)[2]
 
 nyrs = 1
+ndays = 365
 sim.out = rhydra(gridx, gridy, nyrs, ndays, startyear=1, 
                  res=30, converg=1, laket=0, spin=1,
                  dem=dem, mask=mask, area=cella, rivdir=ldd, mflac=mflac,
