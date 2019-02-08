@@ -28,7 +28,7 @@
      *     outnewi(nc,nr),outnewj(nc,nr),basin(nc,nr)
       ! Topographic variables
       double precision drainin(nc,nr,ndays),runin(nc,nr,ndays),
-     *     prcpi(nc,nr,ndays),evapi(nc,nr,nmons) 
+     *     prcpi(nc,nr,ndays),evapi(nc,nr,ndays) !! THIS LOOKS WRONG !! 
 
       ! Outputs
       double precision larea(nc,nr) ! lake area of cell (0/1)
@@ -179,7 +179,7 @@ c
  336    continue
  335   continue
  334  continue
-cc
+c
 c--------------------------------------------------------------
 c Calculate the total volume within each potential lake area (volt).
 c First set the volume of the outlet location to initial value.
@@ -570,15 +570,22 @@ c volume in excess of the volume required to fill the lake.
 c
 c       effvel = 0.5 !alternatively could set velocity to a  constant
 c
+c SEG FAULT HERE
+         if(i.eq.62.and.j.eq.324.and.kt.eq.1) then
+         write(*,*) i,j,iday,kt
+         write(*,*) voll(i,j),volt(i,j)
+         write(*,*) effvel,dist
+         write(*,*) fluxout(i,j)
+         end if
          fluxout(i,j) = max((voll(i,j)-volt(i,j))*
      *                  (effvel/dist),0.)
          !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
          !        write(*,*) i,j,ii,jj,tmpdir,i2,j2
          !        write(*,*) "1",fluxout(i,j)
          !end if
-         fluxout(i,j) = max(min(fluxout(i,j),
-     *           sfluxin(i,j) + temp(i,j) +
-     *           ((voll(i,j)-volt(i,j))/(delt*2.))),0.)
+!         fluxout(i,j) = max(min(fluxout(i,j),
+!     *           sfluxin(i,j) + temp(i,j) +
+!     *           ((voll(i,j)-volt(i,j))/(delt*2.))),0.)
          !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
          !        write(*,*) i,j,ii,jj,tmpdir,i2,j2
          !        write(*,*) "2",fluxout(i,j)
