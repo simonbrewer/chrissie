@@ -580,35 +580,18 @@ c volume in excess of the volume required to fill the lake.
 c
 c       effvel = 0.5 !alternatively could set velocity to a  constant
 c
-c SEG FAULT HERE
-         !write(*,*) i,j,iday,kt
-         !if(i.eq.62.and.j.eq.325.and.kt.eq.1) then
-         !write(*,*) voll(i,j),volt(i,j)
-         !write(*,*) effvel,dist
-         !write(*,*) fluxout(i,j)
-         !end if
          fluxout(i,j) = max((voll(i,j)-volt(i,j))*
      *                  (effvel/dist),0.)
-         !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
-         !        write(*,*) i,j,ii,jj,tmpdir,i2,j2
-         !        write(*,*) "1",fluxout(i,j)
-         !end if
+c
          fluxout(i,j) = max(min(fluxout(i,j),
      *           sfluxin(i,j) + temp(i,j) +
      *           ((voll(i,j)-volt(i,j))/(delt*2.))),0.)
-         !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
-         !        write(*,*) i,j,ii,jj,tmpdir,i2,j2
-         !        write(*,*) "2",fluxout(i,j)
-         !end if
 c
 c Truncate fluxout if too small for computation. 
 c
          if(fluxout(i,j)/area(i,j) .lt. dveps) then 
           fluxout(i,j) = 0. 
          endif
-         !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
-         !        write(*,*) "3",fluxout(i,j)
-         !endif
          !i3 = i2-(istart-1)
          !j3 = j2-(jstart-1)
          if((i2.gt.0).and.(i2.le.nc).and.
@@ -616,9 +599,111 @@ c
           sfluxin(i2,j2) =
      *    sfluxin(i2,j2) + fluxout(i,j)
          endif
-         !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
-         !        write(*,*) "4",sfluxin(i2,j2)
-         !endif
+c
+c--------------------------------------------------------------
+c Adjust height of water column in each cell using the cellular
+c automata. Distribute water height within a lake basin only
+c This flattens the lake surface so that there are no hills or
+c valleys due to differences in the local water budget.
+c
+        if((laket .eq. 0) .and. ((ii .ne. 0).and. (jj.ne.0)))then
+c
+         if((outelv(i,j) .gt. dem(i,j)) .and.
+     *     (voll(ii,jj) .lt.
+     *      volt(ii,jj)))then
+c
+         if((voll(ii,jj) .ge. 0.).and.
+     *      (sillh(i,j) .gt. 0.))then
+c
+          tmpdir2 = 0
+          tmph = outelv(i,j)
+!!!! NEED TO FIGURE OUT THESE I3/J3 COORDINATES         
+!!!! I THINK THIS IS THE COORDINATES OF THE 8 NEIGHBOR CELLS
+           do k2 = 1,8
+            !j3 = (j + joff(k2))-(jstart-1)
+            !i3 = (i + ioff(k2))-(istart-1)
+            j2 = j + joff(k2)
+            i2 = i + ioff(k2)
+
+            if((outelv(i2,j2) .lt. outelv(i,j)) .and.
+     *        (sillh(i2,j2) .eq. sillh(i,j)))then
+             if(outelv(i2,j2) .lt. tmph)then
+              tmpdir2 = k2
+              tmph = outelv(i2,j2)
+             endif
+            endif
+           enddo
+c
+          if(tmpdir2 .ne. 0.)then
+c
+           !j3 = (j + joff(tmpdir2))-(jstart-1)
+           !i3 = (i + ioff(tmpdir2))-(istart-1)
+           j2 = j + joff(tmpdir2)
+           i2 = i + ioff(tmpdir2)
+c
+           gridif = min(max((outelv(i,j) -
+     *               outelv(i2,j2)),0.),
+     *               max((outelv(i,j) - dem(i,j)),0.))
+           if(abs(gridif) .lt. grideps) then
+            gridif = 0.
+           endif
+           gridif = gridif*area(i,j)*0.5  !move only 0.5 of difference
+c
+           outelv(i2,j2) = outelv(i2,j2) +
+     *           gridif/area(i2,j2)
+           outelv(i,j) = outelv(i,j) -
+     *           gridif/area(i,j)
+c
+          endif
+c
+         else
+          larea(i,j) = 0.
+          outelv(i,j) = dem(i,j)
+          areat(ii,jj) = 0.
+         endif                !voll(i2,j2) .ge. 0.
+         endif                !outelv .gt. dem
+c        endif
+c
+c Set lake area = either; 1 if depth is greater than 1 meter, to
+c a % of the lake cell equal to the depth of water, or to 0. if
+c depth = 0.  depth = outelv-grid
+c Adjust the total lake area (areat) to represent current larea.
+c Do this by first subtracting current larea from total then
+c adding new larea to total. If larea = 0. area added = 0.
+c
+         if((outnewi(i,j) .gt. 0.) .and.
+     *     (voll(ii,jj) .lt. volt(ii,jj)))then
+c
+          if((voll(ii,jj) .gt. 0.) .and.
+     *       (sillh(i,j) .gt. 0.))then
+c
+          ! These are just the outlets 
+!           ix = min(max(int(outnewi(i,j)-(istart-1)),1),incf)
+!           jx = min(max(int(outnewj(i,j)-(jstart-1)),1),inrf)
+           areat(ii,jj) = max(areat(ii,jj) - area(i,j)*
+     *         larea(i,j),0.)
+           larea(i,j) = max(min(outelv(i,j)-
+     *         dem(i,j),1.),0.)
+           areat(ii,jj) = max(areat(ii,jj) + area(i,j)*
+     *         larea(i,j),0.) !previous
+          else
+           larea(i,j) = 0.
+           outelv(i,j) = dem(i,j)
+           areat(ii,jj) = 0.
+          endif
+         endif
+c
+       laream(i,j) = (laream(i,j)+((outelv(i,j)-dem(i,j))
+     *                        /(ndaypm(imon)*nspday)))
+       if(outelv(i,j)-dem(i,j) .lt. 0.1)then
+        laream(i,j) = 0.
+       endif
+c
+c     endif        !iday
+      endif        !laket = 0
+c
+       sfluxout(i,j,imon) = (sfluxout(i,j,imon)+fluxout(i,j)
+     *                        /(ndaypm(imon)*nspday))
 c
 c
         endif              !end mask loop
