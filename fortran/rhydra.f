@@ -21,10 +21,11 @@
       integer nc,nr ! Grid dimensions
       ! Forcings
       integer mask(nc,nr) ! Binary mask
+      integer outdir(nc,nr) ! Drainage direction
       integer nyrs,ndays
       integer res ! Grid resolution in arc seconds
       double precision dem(nc,nr),area(nc,nr),
-     *     outdir(nc,nr),sillh(nc,nr),
+     *     sillh(nc,nr),
      *     outnewi(nc,nr),outnewj(nc,nr),basin(nc,nr)
       ! Topographic variables
       double precision drainin(nc,nr,ndays),runin(nc,nr,ndays),
@@ -52,6 +53,7 @@
       double precision timer,timed,timeg
       integer i,j,k,ii,jj,kk,k2,tmpdir,tmpdir2
       integer spin
+      integer edgecell
       integer ioff(8),joff(8)
       integer ndaypm(12)
 
@@ -525,10 +527,18 @@ c
          !jjj = min(max(outnewj(i,j)-(jstart-1),1.),REAL(inrf))
          ii = outnewi(i,j) ! outlet...
          jj = outnewj(i,j)
+         !write(*,*) i,j,ii,jj,"here1",mask(i,j),outdir(i,j)
 c
 c use river directions computed in getpwd.f
 c
-         tmpdir = outdir(i,j) 
+c GRASS directions use negatives for edge/coast pour points
+c Should track these for total outflow
+         if (outdir(i,j).le.0) then
+          edgecell = 1
+         else 
+          edgecell = 0
+         end if
+         tmpdir = abs( outdir(i,j) )
 c
          j2 = j + joff(tmpdir)
          i2 = i + ioff(tmpdir)
@@ -571,26 +581,44 @@ c
 c       effvel = 0.5 !alternatively could set velocity to a  constant
 c
 c SEG FAULT HERE
-         if(i.eq.62.and.j.eq.324.and.kt.eq.1) then
-         write(*,*) i,j,iday,kt
-         write(*,*) voll(i,j),volt(i,j)
-         write(*,*) effvel,dist
-         write(*,*) fluxout(i,j)
-         end if
+         !write(*,*) i,j,iday,kt
+         !if(i.eq.62.and.j.eq.325.and.kt.eq.1) then
+         !write(*,*) voll(i,j),volt(i,j)
+         !write(*,*) effvel,dist
+         !write(*,*) fluxout(i,j)
+         !end if
          fluxout(i,j) = max((voll(i,j)-volt(i,j))*
      *                  (effvel/dist),0.)
          !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
          !        write(*,*) i,j,ii,jj,tmpdir,i2,j2
          !        write(*,*) "1",fluxout(i,j)
          !end if
-!         fluxout(i,j) = max(min(fluxout(i,j),
-!     *           sfluxin(i,j) + temp(i,j) +
-!     *           ((voll(i,j)-volt(i,j))/(delt*2.))),0.)
+         fluxout(i,j) = max(min(fluxout(i,j),
+     *           sfluxin(i,j) + temp(i,j) +
+     *           ((voll(i,j)-volt(i,j))/(delt*2.))),0.)
          !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
          !        write(*,*) i,j,ii,jj,tmpdir,i2,j2
          !        write(*,*) "2",fluxout(i,j)
          !end if
 c
+c Truncate fluxout if too small for computation. 
+c
+         if(fluxout(i,j)/area(i,j) .lt. dveps) then 
+          fluxout(i,j) = 0. 
+         endif
+         !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
+         !        write(*,*) "3",fluxout(i,j)
+         !endif
+         !i3 = i2-(istart-1)
+         !j3 = j2-(jstart-1)
+         if((i2.gt.0).and.(i2.le.nc).and.
+     *      (j2.gt.0).and.(j2.le.nr)) then
+          sfluxin(i2,j2) =
+     *    sfluxin(i2,j2) + fluxout(i,j)
+         endif
+         !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
+         !        write(*,*) "4",sfluxin(i2,j2)
+         !endif
 c
 c
         endif              !end mask loop
