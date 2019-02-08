@@ -405,7 +405,30 @@ c
 c
  110    continue
  120   continue
- 
+c 
+c----------------------------------------------------------------
+c Calculate the change in volume (dvoll) as the sum of the P-E (tempdl)
+c and the river flow (tempdr). Set the minimum value of dvoll.
+c Add dvoll to existing reservoir volume (voll). Set variables
+c to 0. for next timestep.
+c
+       do 123 j = 1,nr
+        do 113 i = 1,nc
+        if(mask(i,j) .eq. 1)then
+         dvoll(i,j)  = tempdr(i,j) + tempdl(i,j)
+         if(abs(dvoll(i,j))/delt/area(i,j) .lt. dveps) then
+          dvoll(i,j) = 0.
+         endif
+         !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
+         !        write(*,*) i,j,k,kt,dvoll(i,j)
+         !end if
+         voll(i,j)  = max(voll(i,j) + dvoll(i,j),0.)
+         tempdl(i,j) = 0.
+         tempdr(i,j) = 0.
+        end if ! Mask check
+113     continue
+123    continue
+c
 c
 c
  133   continue   !end hourly loop
