@@ -537,6 +537,54 @@ c
      *        + (dy*dy*abs(j2-j)*abs(j2-j)))
          dist = max(dx,dist)
 c
+c set effective velocity of each cell. It is dependent on the
+c lake volume of the cell. For large lakes the value is quite
+c slow, for small lakes it approaches the reference value,
+c effref. For non-lake points it is a function of the
+c gradient as in Miller et al. 1994. This is fairly rough
+c and could be improved with considerations of sinuosity or
+c stream order for example.
+c
+c Invoke the top half of this if statement if you want the volume
+c of the lake to impact the river discharge velocity. It is unique
+c to each lake and should be studied before use
+c
+c       if((larea(i,j) .gt. 0.) .and.
+c    *     (voll(ii,jj) .gt. 0.))then
+c        vollocal = 1.*area(j)
+c        volref = sqrt(vollocal/volt(iii,jjj))
+c        effvel = min(effref,0.1*effref*volref)
+c        effvel = min(effref,0.08*effref*volref)
+c        effvel = max(effvel,1.0e-02)
+c       else                         !non-lake
+         ic = max(dem(i,j)-dem(i2,j2),1.)/dist
+         io = ioo/(dx/dy)   !scale reference gradient to latitude
+         effvel = effref*sqrt(ic/io)
+         effvel = min(effvel,3.0)
+c       endif
+c calculate fluxout of each cell and send it as fluxin to
+c either the cell downstream if it is not a lake downstream
+c or to the outlet location. The fluxout of the cell which
+c corresponds to the sill is calculated for only that water 
+c volume in excess of the volume required to fill the lake.
+c
+c       effvel = 0.5 !alternatively could set velocity to a  constant
+c
+         fluxout(i,j) = max((voll(i,j)-volt(i,j))*
+     *                  (effvel/dist),0.)
+         !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
+         !        write(*,*) i,j,ii,jj,tmpdir,i2,j2
+         !        write(*,*) "1",fluxout(i,j)
+         !end if
+         fluxout(i,j) = max(min(fluxout(i,j),
+     *           sfluxin(i,j) + temp(i,j) +
+     *           ((voll(i,j)-volt(i,j))/(delt*2.))),0.)
+         !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
+         !        write(*,*) i,j,ii,jj,tmpdir,i2,j2
+         !        write(*,*) "2",fluxout(i,j)
+         !end if
+c
+c
 c
         endif              !end mask loop
 c
