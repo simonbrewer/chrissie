@@ -269,9 +269,9 @@ c
       do 916 j = i,nr
        do 917 i = 1,nc
         if(outnewi(i,j) .gt. 0.)then
-          write(*,*) i,j,outnewi(i,j),outnewj(i,j)
-          !! THIS ISN'T BEING TRIGGERED
+         !! THIS ISN'T BEING TRIGGERED
          if((i .eq. outnewi(i,j)) .and. (j .eq. outnewj(i,j)))then
+         write(*,*) i,j,outnewi(i,j),outnewj(i,j)
           basin2(i,j) = 1.
          endif
         endif
@@ -304,6 +304,113 @@ c monthly loop
 c
        k = 1 ! Doy counter
        do 131 imon = 1,12
+c
+c re-initialize some variables each month.
+c
+       do j = 1,nr
+        do i = 1,nc
+         sfluxout(i,j,imon) = 0.
+         laream(i,j) = 0.
+        enddo
+       enddo
+c
+c write a few diagnostics
+c
+       write(*,*)'begin mon ',imon
+c
+c start the daily loop
+c
+       do 132 iday = 1,ndaypm(imon)
+c
+c start the sub-daily timestep (one hour in this case but depends
+c on how delt is set).
+c
+       do 133 kt = 1,int(nspday)
+        ktstep = ktstep + 1 !NOT USED?
+c
+c start first spatial loop.
+c
+       do 120 j = 1,nr
+        do 110 i = 1,nc
+c
+        if(mask(i,j) .eq. 1)then
+        !write(*,*) i,j,kt,iday
+c----------------------------------------------------
+c Initialize hourly climate input variables.
+c
+          rin     = max(runin(i,j,k)*area(i,j),0.)  !surface runoff
+          bin     = max(drainin(i,j,k)*area(i,j),0.) !sub-surface runoff
+          bout    = 0. !sub-surface flow to river
+          rout    = 0. !surface flow to river
+          irrout  = 0. !irrigation rate (prescribed below)
+          prcpl   = max(prcpi(i,j,k)*area(i,j),0.)  !precipitation rate
+          evapl   = max(evapi(i,j,k)*area(i,j),0.)  !evaporation rate
+c
+c         if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
+c                 write(*,*) i,j,k,iday,runin(i,j,k),rin
+c         end if
+c --------------------------------------------------------------------
+c IRRIGATION - irrigation withdrawals to go here
+c --------------------------------------------------------------------
+c
+c --------------------------------------------------------------------
+c RESERVOIRS         
+c --------------------------------------------------------------------
+c calculate volume in runoff reservoir for land or lake
+c
+         rout = volr(i,j)/timer
+         volr(i,j) = max(volr(i,j) + (rin-rout)*delt,0.)
+c         if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
+c                 write(*,*) i,j,k,kt,rin,rout,volr(i,j)
+c         end if
+c
+c calculate volume in baseflow reservoir, land only
+c
+c        bout = 0.75*volb(ii,jj)/timed + 0.25*volb(ii,jj)/timeg
+         bout = volb(i,j)/timed
+         volb(i,j) = max(volb(i,j) + (bin-bout)*delt,0.)
+c
+c calculate volume in transport reservoir
+c needs outlet locations (ii,jj)
+c
+         ii = outnewi(i,j)
+         jj = outnewj(i,j)
+c lake water balance for this timestep
+c
+         temp(i,j) = (rout+bout)*(1.-larea(i,j))
+c
+c land water balance for this timestep.
+c
+         tempdr(i,j) = ((rout+
+     *           bout)*(1.-larea(i,j))-irrout
+     *          + (sfluxin(i,j) - fluxout(i,j)))*delt
+c
+c subtract any evaporation from the lake from the outlet
+c location. The outlet is the accountant for the entire lake.
+c
+         if(larea(i,j) .gt. 0.)then
+          tempdl(ii,jj) = tempdl(ii,jj) 
+     *          + ((prcpl-evapl)*larea(i,j))*delt
+         !if(i.eq.25.and.j.eq.25.and.kt.eq.1) then
+         !        write(*,*) "a",i,j,k,kt,tempdl(ii,jj),larea(i,j)
+         !end if
+         endif
+c
+c This should be accounted for in mask check
+!         else                 !basin .ne. requested number
+!          voll(ii,jj) = 0.
+!         endif
+c
+        end if ! Mask check
+c
+ 110    continue
+ 120   continue
+ 
+c
+c
+ 133   continue   !end hourly loop
+       k = k + 1
+ 132   continue   !end daily loop
 c
 c
  131   continue   ! end imonth loop
