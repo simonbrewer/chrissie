@@ -268,12 +268,13 @@ c set basin2 as a mask for lake kernal location. Currently am
 c setting as the outlet location. Corrections to that will
 c be made outside this loop
 c
-      do 916 j = i,nr
+      do 916 j = 1,nr
        do 917 i = 1,nc
+          write(*,*) i,j,outnewi(i,j),outnewj(i,j),dem(i,j)
         if(outnewi(i,j) .gt. 0.)then
          !! THIS ISN'T BEING TRIGGERED
          if((i .eq. outnewi(i,j)) .and. (j .eq. outnewj(i,j)))then
-          !write(*,*) i,j,outnewi(i,j),outnewj(i,j)
+          write(*,*) i,j,outnewi(i,j),outnewj(i,j)
           basin2(i,j) = 1.
          endif
         endif
