@@ -64,7 +64,7 @@
       do 20 j=1,n
 
       if (mask(i,j).eq.1) then ! Check if cell is in lake watershed
-        write(*,*) "start",i,j,dem(i,j),ldd(i,j)
+        !write(*,*) "start",i,j,dem(i,j),ldd(i,j)
         ! Tracking counters
         ii = i
         jj = j
@@ -73,10 +73,10 @@
         pourelev = dem(i,j)
 
         do while (edge.eq.0)
-          write(*,*) "current",ii,jj,dem(ii,jj),ldd(ii,jj),pourelev
+         ! write(*,*) "current",ii,jj,dem(ii,jj),ldd(ii,jj),pourelev
           ! Test elevation
           if (dem(ii,jj).gt.pourelev) then
-                  write(*,*) "PWA!!"
+                  !write(*,*) "PWA!!"
             pwa(i,j) = 1
             pourelev = dem(ii,jj)
             iout(i,j) = ii
