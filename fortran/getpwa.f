@@ -73,13 +73,18 @@
         pourelev = dem(i,j)
 
         do while (edge.eq.0)
-          !write(*,*) "current",ii,jj,dem(ii,jj),ldd(ii,jj)
+          write(*,*) "current",ii,jj,dem(ii,jj),ldd(ii,jj),pourelev
           ! Test elevation
-          if (dem(ii,jj).ge.pourelev) then
+          if (dem(ii,jj).gt.pourelev) then
+                  write(*,*) "PWA!!"
             pwa(i,j) = 1
             pourelev = dem(ii,jj)
             iout(i,j) = ii
             jout(i,j) = jj
+            !! Also need to set the outflow
+            pwa(ii,jj) = 1
+            iout(ii,jj) = ii
+            jout(ii,jj) = jj
           end if
 
           ! Set drainage output
