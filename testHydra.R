@@ -29,13 +29,22 @@ bpf = 0 ## Proportion of runoff to put in baseflow [0-1]
 effvol = 0.3 
 
 ## Base files
-dem.r = raster("./dem/chrissie_dem.nc")
-bas.r = raster("./dem/chrissie_bas.nc")
+myext = extent(c(30,31,-27,-26))
+dem.r = crop(raster("./dem/chrissie_dem.nc"), myext)
+bas.r = crop(raster("./dem/chrissie_bas.nc"), myext)
 ldd.r = raster("~/Documents/grassdata/hydrosheds/bclake/af_ldd_30g.nc")
 ldd.r = crop(ldd.r, extent(dem.r))
-mflac.r = raster("./dem/cllake_mflac.nc")
-iout.r = raster("./dem/cllake_iout.nc")
-jout.r = raster("./dem/cllake_jout.nc")
+mflac.r = crop(raster("./dem/cllake_mflac.nc"), myext)
+iout.r = crop(raster("./dem/cllake_iout.nc"), myext)
+jout.r = crop(raster("./dem/cllake_jout.nc"), myext)
+
+# dem.r = raster("./dem/chrissie_dem.nc")
+# bas.r = raster("./dem/chrissie_bas.nc")
+# ldd.r = raster("~/Documents/grassdata/hydrosheds/bclake/af_ldd_30g.nc")
+# ldd.r = crop(ldd.r, extent(dem.r))
+# mflac.r = raster("./dem/cllake_mflac.nc")
+# iout.r = raster("./dem/cllake_iout.nc")
+# jout.r = raster("./dem/cllake_jout.nc")
 
 ## Replace nulls
 dem.r[is.na(dem.r)] <- 0
@@ -68,13 +77,13 @@ outlet.r[out.cell] <- 1
 
 ###############################################################################
 ## Forcing data
-dpre.stk = brick("./inputs/dpre_cl.nc")
+dpre.stk = crop(brick("./inputs/dpre_cl.nc"), myext)
 dpre.stk[is.na(dpre.stk)] <- 0
-dpet.stk = brick("./inputs/dpet_cl.nc")
+dpet.stk = crop(brick("./inputs/dpet_cl.nc"), myext)
 dpet.stk[is.na(dpet.stk)] <- 0
-devp.stk = brick("./inputs/devp_cl.nc")
+devp.stk = crop(brick("./inputs/devp_cl.nc"), myext)
 devp.stk[is.na(devp.stk)] <- 0
-dcn.stk = brick("./inputs/dcn_cl.nc")
+dcn.stk = crop(brick("./inputs/dcn_cl.nc"), myext)
 dcn.stk[is.na(dcn.stk)] <- 0
 
 ###############################################################################
@@ -117,7 +126,7 @@ nyrs = 1
 ndays = 365
 
 sim.out = rhydra(gridx, gridy, nyrs, ndays, startyear=1, 
-                 res=30, converg=0, laket=0, spin=1,
+                 res=30, converg=0, laket=0, spin=50,
                  dem=dem, mask=mask, area=cella, rivdir=ldd, mflac=mflac,
                  outnewi=iout, outnewj=jout, basin=bas, 
                  prcpi=pre, evapi=evp, runin=sro, drainin=bro) 
