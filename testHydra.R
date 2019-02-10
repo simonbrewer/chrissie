@@ -140,10 +140,10 @@ tmp.r = setValues(dem.r, matrix(sim.out$larea,
                                 nrow=dim(dem.r)[1], ncol=dim(dem.r)[2]))
 plot(tmp.r)
 plot(cllake, add=TRUE)
-stop()
+
 tmp.r = setValues(dem.r, matrix(sim.out$volr, 
                                 nrow=dim(dem.r)[1], ncol=dim(dem.r)[2]))
-plot(tmp.r)
+plot(tmp.r, col=RColorBrewer::brewer.pal(7, "Blues"))
 plot(cllake, add=TRUE)
 
 
