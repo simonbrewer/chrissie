@@ -6,3 +6,4 @@ Test of hydra model for Lake Chrissie region
 2. Run getClimDailyGrid.R - calculates climate indicies for this region
 3. Run regGrid.R - regrids the climate indicies to the finer DEM grid
 4. Run testHydra.R
+5. Profit
